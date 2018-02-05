@@ -2,14 +2,22 @@ import discord
 import logging
 from discord.ext import commands
 import random
-import setup as s
+import configparser
 
-bot = commands.Bot(command_prefix=s.prefix, description=s.description)
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+disc_token = config.get('DISCORD', 'token')
+prefix = config.get('DISCORD', 'prefix')
+description = config.get('DISCORD', 'description')
+
+bot = commands.Bot(command_prefix=prefix, description=description)
 logger = logging.getLogger('discord')
 logger.setLevel(logging.DEBUG)
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
+
 
 @bot.event
 async def on_ready():
@@ -44,14 +52,11 @@ async def exit():
     await bot.close()
 
 
-@bot.command()
-async def on_join():
+@bot.listen
+async def on_join(member: discord.Member):
     """Posts a welcome message for every new member joining the server"""
-    server = member.server
-    fmt = 'Welcome {0.mention} to {1.name}'
-    await bot.say(fmt.format(member, server))
+    await bot.say('Welcome to the server {0.user}! Please enjoy your stay'.format(member))
 
 
 if __name__ == '__main__':
-    bot.run(s.token)
-
+    bot.run(disc_token)
